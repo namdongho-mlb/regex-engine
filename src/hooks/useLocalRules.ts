@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
+import { RULE_COUNT } from '../defaultRules';
 import {
   createDefaultRules,
   createEmptyRule,
   type RegexRule,
 } from '../types';
 
-const STORAGE_KEY = 'regex-sequential-rules';
+const STORAGE_KEY = 'regex-sequential-rules-v2';
 
 interface PersistedRule {
   id: number;
@@ -15,32 +16,37 @@ interface PersistedRule {
   flags: RegexRule['flags'];
 }
 
+function normalizePersisted(parsed: PersistedRule[]): RegexRule[] {
+  return Array.from({ length: RULE_COUNT }, (_, index) => {
+    const id = index + 1;
+    const found = parsed.find((r) => r.id === id) ?? parsed[index];
+    if (!found) return createEmptyRule(id);
+    return {
+      id,
+      enabled: Boolean(found.enabled),
+      pattern: String(found.pattern ?? ''),
+      replacement: String(found.replacement ?? ''),
+      flags: {
+        g: found.flags?.g ?? true,
+        i: Boolean(found.flags?.i),
+        m: Boolean(found.flags?.m),
+        s: Boolean(found.flags?.s),
+      },
+      matchCount: null,
+      error: null,
+    };
+  });
+}
+
 function loadRules(): RegexRule[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return createDefaultRules();
     const parsed = JSON.parse(raw) as PersistedRule[];
-    if (!Array.isArray(parsed) || parsed.length !== 5) {
+    if (!Array.isArray(parsed) || parsed.length === 0) {
       return createDefaultRules();
     }
-    return [1, 2, 3, 4, 5].map((id) => {
-      const found = parsed.find((r) => r.id === id);
-      if (!found) return createEmptyRule(id);
-      return {
-        id,
-        enabled: Boolean(found.enabled),
-        pattern: String(found.pattern ?? ''),
-        replacement: String(found.replacement ?? ''),
-        flags: {
-          g: found.flags?.g ?? true,
-          i: Boolean(found.flags?.i),
-          m: Boolean(found.flags?.m),
-          s: Boolean(found.flags?.s),
-        },
-        matchCount: null,
-        error: null,
-      };
-    });
+    return normalizePersisted(parsed);
   } catch {
     return createDefaultRules();
   }
@@ -118,25 +124,7 @@ export function useLocalRules() {
           if (!Array.isArray(parsed) || parsed.length === 0) {
             throw new Error('유효하지 않은 규칙 파일입니다.');
           }
-          const next = [1, 2, 3, 4, 5].map((id) => {
-            const found = parsed.find((r) => r.id === id) ?? parsed[id - 1];
-            if (!found) return createEmptyRule(id);
-            return {
-              id,
-              enabled: found.enabled !== false,
-              pattern: String(found.pattern ?? ''),
-              replacement: String(found.replacement ?? ''),
-              flags: {
-                g: found.flags?.g ?? true,
-                i: Boolean(found.flags?.i),
-                m: Boolean(found.flags?.m),
-                s: Boolean(found.flags?.s),
-              },
-              matchCount: null,
-              error: null,
-            } satisfies RegexRule;
-          });
-          setRules(next);
+          setRules(normalizePersisted(parsed));
           resolve();
         } catch (err) {
           reject(err instanceof Error ? err : new Error('가져오기 실패'));
@@ -148,7 +136,9 @@ export function useLocalRules() {
   }, []);
 
   const resetRules = useCallback(() => {
-    if (!window.confirm('모든 규칙을 초기화하시겠습니까?')) return;
+    if (!window.confirm('모든 규칙을 convert.py 기본값으로 초기화하시겠습니까?')) {
+      return;
+    }
     setRules(createDefaultRules());
   }, []);
 

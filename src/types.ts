@@ -1,3 +1,5 @@
+import { createConvertPresetRules, createEmptyRules } from './defaultRules';
+
 export interface RegexFlags {
   g: boolean;
   i: boolean;
@@ -6,7 +8,7 @@ export interface RegexFlags {
 }
 
 export interface RegexRule {
-  id: number; // 1..5
+  id: number; // 1..6
   enabled: boolean;
   pattern: string;
   replacement: string;
@@ -65,7 +67,7 @@ export type WorkerResponse =
     };
 
 export function createEmptyRule(id: number): RegexRule {
-  return {
+  return createEmptyRules().find((r) => r.id === id) ?? {
     id,
     enabled: true,
     pattern: '',
@@ -76,8 +78,9 @@ export function createEmptyRule(id: number): RegexRule {
   };
 }
 
+/** convert.py RULES 기본 프리셋 */
 export function createDefaultRules(): RegexRule[] {
-  return [1, 2, 3, 4, 5].map(createEmptyRule);
+  return createConvertPresetRules();
 }
 
 export function flagsToString(flags: RegexFlags): string {
