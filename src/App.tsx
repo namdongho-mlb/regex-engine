@@ -12,12 +12,16 @@ const MAX_WARN_BYTES = 10 * 1024 * 1024;
 export default function App() {
   const {
     rules,
+    rulesLoading,
+    rulesSource,
+    rulesLoadError,
     updateRule,
     setMatchCounts,
     clearMatchCounts,
     exportRules,
     importRules,
     resetRules,
+    reloadFromPy,
   } = useLocalRules();
 
   const { isRunning, canRun, result, runError, hasExecuted, run, setRunError } =
@@ -62,6 +66,8 @@ export default function App() {
           onExport={exportRules}
           onImport={onImport}
           onReset={resetRules}
+          onReloadPy={reloadFromPy}
+          rulesLoading={rulesLoading}
         />
       </header>
 
@@ -79,6 +85,9 @@ export default function App() {
         onRun={() => run(source)}
         canRun={canRun}
         isRunning={isRunning}
+        rulesLoading={rulesLoading}
+        rulesSource={rulesSource}
+        rulesLoadError={rulesLoadError}
       />
 
       <ResultPane

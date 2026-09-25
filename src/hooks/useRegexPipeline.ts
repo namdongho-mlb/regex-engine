@@ -6,7 +6,6 @@ import {
   type RegexRule,
   type WorkerRulePayload,
 } from '../types';
-import { RULE_COUNT } from '../defaultRules';
 import RegexWorker from '../workers/regexWorker.ts?worker';
 
 const TIMEOUT_MS = 3000;
@@ -171,7 +170,7 @@ export function useRegexPipeline(
       const started = performance.now();
       let text = source;
       const counts = Object.fromEntries(
-        Array.from({ length: RULE_COUNT }, (_, i) => [i + 1, null]),
+        rules.map((rule) => [rule.id, null]),
       ) as Record<number, number | null>;
       let totalReplacements = 0;
       let appliedRuleCount = 0;

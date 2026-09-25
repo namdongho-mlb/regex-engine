@@ -13,23 +13,33 @@ export function RuleRow({ rule, onChange }: RuleRowProps) {
   return (
     <div className="space-y-1">
       <div
-        className={`grid grid-cols-[28px_28px_minmax(0,1fr)_minmax(0,1fr)_auto_64px] items-center gap-2 rounded-md border px-2 py-1.5 ${
-          hasError ? 'border-red-500 bg-red-50' : 'border-slate-200 bg-white'
+        className={`grid grid-cols-[28px_52px_minmax(0,1fr)_minmax(0,1fr)_auto_64px] items-center gap-2 rounded-md border px-2 py-1.5 ${
+          hasError
+            ? 'border-red-500 bg-red-50'
+            : rule.enabled
+              ? 'border-slate-200 bg-white'
+              : 'border-slate-200 bg-slate-50 opacity-80'
         }`}
       >
         <span className="text-center text-sm font-medium text-slate-600">
           {rule.id}
         </span>
-        <input
-          type="checkbox"
-          className="mx-auto h-4 w-4 accent-blue-600"
-          checked={rule.enabled}
-          onChange={(e) => onChange(rule.id, { enabled: e.target.checked })}
-          title="활성화"
-        />
+        <button
+          type="button"
+          onClick={() => onChange(rule.id, { enabled: !rule.enabled })}
+          className={`rounded border px-2 py-0.5 text-xs font-medium ${
+            rule.enabled
+              ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700'
+              : 'border-slate-300 bg-white text-slate-500 hover:bg-slate-100'
+          }`}
+          title={rule.enabled ? '실행 시 이 규칙을 적용합니다' : '실행 시 이 규칙을 건너뜁니다'}
+        >
+          {rule.enabled ? '적용' : '제외'}
+        </button>
         <input
           type="text"
-          className={`min-w-0 rounded border px-2 py-1 font-mono text-[13px] outline-none focus:border-blue-500 ${
+          disabled={!rule.enabled}
+          className={`min-w-0 rounded border px-2 py-1 font-mono text-[13px] outline-none focus:border-blue-500 disabled:bg-slate-100 disabled:text-slate-400 ${
             hasError ? 'border-red-400' : 'border-slate-200'
           }`}
           placeholder="패턴"
@@ -39,7 +49,8 @@ export function RuleRow({ rule, onChange }: RuleRowProps) {
         />
         <input
           type="text"
-          className="min-w-0 rounded border border-slate-200 px-2 py-1 font-mono text-[13px] outline-none focus:border-blue-500"
+          disabled={!rule.enabled}
+          className="min-w-0 rounded border border-slate-200 px-2 py-1 font-mono text-[13px] outline-none focus:border-blue-500 disabled:bg-slate-100 disabled:text-slate-400"
           placeholder="치환 (빈 값 = 삭제)"
           value={rule.replacement}
           onChange={(e) => onChange(rule.id, { replacement: e.target.value })}
@@ -50,7 +61,8 @@ export function RuleRow({ rule, onChange }: RuleRowProps) {
             <button
               key={key}
               type="button"
-              className={`h-7 w-7 rounded border text-xs font-mono ${
+              disabled={!rule.enabled}
+              className={`h-7 w-7 rounded border text-xs font-mono disabled:cursor-not-allowed disabled:opacity-40 ${
                 rule.flags[key]
                   ? 'border-blue-600 bg-blue-600 text-white'
                   : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
@@ -67,7 +79,7 @@ export function RuleRow({ rule, onChange }: RuleRowProps) {
           ))}
         </div>
         <span className="text-right text-xs text-slate-500 tabular-nums">
-          {rule.matchCount === null ? '—' : `${rule.matchCount}건`}
+          {!rule.enabled ? '—' : rule.matchCount === null ? '—' : `${rule.matchCount}건`}
         </span>
       </div>
       {hasError && (
