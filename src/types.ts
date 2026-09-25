@@ -1,4 +1,5 @@
 import { createConvertPresetRules, createEmptyRules } from './defaultRules';
+import type { TextEncodingId } from './utils/textEncoding';
 
 export interface RegexFlags {
   g: boolean;
@@ -28,6 +29,7 @@ export interface FileMeta {
   name: string;
   size: number;
   lineCount: number;
+  encoding: TextEncodingId;
 }
 
 export type FlagKey = keyof RegexFlags;
