@@ -92,12 +92,17 @@ export function flagsToString(flags: RegexFlags): string {
   return result;
 }
 
+/** 패턴이 비어 있는지 확인 (선·후행 공백만 있는 경우 포함). trim 하지 않는다. */
+export function isPatternEmpty(pattern: string): boolean {
+  return /^\s*$/.test(pattern);
+}
+
 export function validatePattern(pattern: string): string | null {
-  const trimmed = pattern.trim();
-  if (!trimmed) return null;
+  if (isPatternEmpty(pattern)) return null;
   try {
+    // 선·후행 공백은 패턴의 일부일 수 있음 (예: r' *"' → 공백 + * + 따옴표)
     // eslint-disable-next-line no-new
-    new RegExp(trimmed);
+    new RegExp(pattern);
     return null;
   } catch (err) {
     return err instanceof Error ? err.message : 'Invalid regular expression';

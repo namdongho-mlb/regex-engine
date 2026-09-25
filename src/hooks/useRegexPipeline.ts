@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   flagsToString,
+  isPatternEmpty,
   validatePattern,
   type PipelineResult,
   type RegexRule,
@@ -36,7 +37,7 @@ function toPayload(rule: RegexRule): WorkerRulePayload {
 }
 
 function hasRunnableRules(rules: RegexRule[]): boolean {
-  return rules.some((r) => r.enabled && r.pattern.trim() !== '');
+  return rules.some((r) => r.enabled && !isPatternEmpty(r.pattern));
 }
 
 export function useRegexPipeline(
@@ -69,7 +70,7 @@ export function useRegexPipeline(
   // Live pattern validation
   useEffect(() => {
     for (const rule of rules) {
-      if (!rule.enabled || !rule.pattern.trim()) {
+      if (!rule.enabled || isPatternEmpty(rule.pattern)) {
         if (rule.error) updateRule(rule.id, { error: null });
         continue;
       }
@@ -87,7 +88,7 @@ export function useRegexPipeline(
 
   const canRun = useMemo(() => {
     const hasInvalid = rules.some(
-      (r) => r.enabled && r.pattern.trim() !== '' && r.error,
+      (r) => r.enabled && !isPatternEmpty(r.pattern) && r.error,
     );
     return !hasInvalid && !isRunning;
   }, [rules, isRunning]);
@@ -158,7 +159,7 @@ export function useRegexPipeline(
       }
 
       const hasInvalid = rules.some(
-        (r) => r.enabled && r.pattern.trim() !== '' && r.error,
+        (r) => r.enabled && !isPatternEmpty(r.pattern) && r.error,
       );
       if (hasInvalid) return;
 
@@ -178,7 +179,7 @@ export function useRegexPipeline(
       try {
         for (const rule of rules) {
           if (runId !== runIdRef.current) return;
-          if (!rule.enabled || !rule.pattern.trim()) continue;
+          if (!rule.enabled || isPatternEmpty(rule.pattern)) continue;
 
           try {
             const response = await runOneInWorker(text, rule);

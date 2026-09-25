@@ -40,16 +40,19 @@ function countAndReplace(
   return { next, count };
 }
 
+function isPatternEmpty(pattern: string): boolean {
+  return /^\s*$/.test(pattern);
+}
+
 function applyRule(text: string, rule: WorkerRulePayload) {
-  const pattern = rule.pattern.trim();
-  if (!rule.enabled || !pattern) {
+  if (!rule.enabled || isPatternEmpty(rule.pattern)) {
     return { next: text, count: 0, skipped: true as const };
   }
 
   try {
     const { next, count } = countAndReplace(
       text,
-      pattern,
+      rule.pattern,
       rule.flags,
       rule.replacement,
     );

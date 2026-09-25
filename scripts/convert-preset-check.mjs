@@ -35,4 +35,16 @@ for (const [pat, , flags] of RULES) {
     process.exit(1);
   }
 }
+// Rule 3: leading space before * must not be trimmed ( */“ → invalid)
+{
+  const LEFT = '\u201C';
+  const pat = ` *${LEFT}`;
+  new RegExp(pat, 'g');
+  const out = `hello ${LEFT}world`.replace(new RegExp(pat, 'g'), `\n${LEFT}`);
+  if (out !== `hello\n${LEFT}world`) {
+    throw new Error(`rule3 leading-space pattern failed: ${JSON.stringify(out)}`);
+  }
+  console.log('rule3 leading-space pattern OK');
+}
+
 console.log('convert preset patterns OK');
