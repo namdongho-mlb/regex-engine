@@ -50,6 +50,15 @@ export function createCoreBuiltinRules(): RegexRule[] {
       error: null,
     },
     {
+      id: 9107,
+      enabled: true,
+      pattern: '__builtin_quote_narration__',
+      replacement: '',
+      flags: { g: true, i: false, m: false, s: false },
+      matchCount: null,
+      error: null,
+    },
+    {
       id: 9105,
       enabled: true,
       pattern: '__builtin_wrap_80__',
@@ -68,6 +77,7 @@ export const BUILTIN_RULE_LABELS: Record<number, string> = {
   9104: '「」 대사 줄바꿈',
   9105: '80자 초과 문장 줄바꿈',
   9106: '"…" 대사 구간 줄바꿈',
+  9107: '대사·지문 줄 분리',
 };
 
 export function builtinRuleLabel(ruleId: number, pattern: string): string {

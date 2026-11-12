@@ -2,6 +2,7 @@
 
 import {
   applyDialogueCornerQuotes,
+  applyQuoteNarrationLinebreaks,
   BUILTIN_HANDLER_IDS,
   wrapLongLinesAt80,
 } from '../utils/builtinTextRules';
@@ -59,6 +60,9 @@ function applyBuiltinById(
   }
   if (ruleId === BUILTIN_HANDLER_IDS.wrap80) {
     return wrapLongLinesAt80(text);
+  }
+  if (ruleId === BUILTIN_HANDLER_IDS.quoteNarration) {
+    return applyQuoteNarrationLinebreaks(text);
   }
   return null;
 }

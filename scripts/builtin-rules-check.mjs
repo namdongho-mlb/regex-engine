@@ -94,6 +94,40 @@ if (chainLines.length !== 3) {
 }
 console.log('quoted dialogue line breaks OK');
 
+function applyQuoteNarrationLinebreaks(text) {
+  let count = 0;
+  let next = text.replace(/(?<=[\u201D"])\s+(?=[^\u201C"\n])/g, () => {
+    count += 1;
+    return '\n';
+  });
+  next = next.replace(/(?<=[^\u201C"\n])\s+(?=[\u201C"])/g, () => {
+    count += 1;
+    return '\n';
+  });
+  return { next, count };
+}
+
+const sample = [
+  '"안돼요." 시즈에도 아직 자지 않은 것 같았다.',
+  '그러나 그녀는 두 손을 뻗으며 거절 하려고 했다.',
+  '"그렇지만 내일은 쉬지 않아?" 시즈에는 현재 봄방학 중이므로 매일 집에 있다.',
+].join('\n');
+const sampleOut = applyQuoteNarrationLinebreaks(sample).next;
+const expected = [
+  '"안돼요."',
+  '시즈에도 아직 자지 않은 것 같았다.',
+  '그러나 그녀는 두 손을 뻗으며 거절 하려고 했다.',
+  '"그렇지만 내일은 쉬지 않아?"',
+  '시즈에는 현재 봄방학 중이므로 매일 집에 있다.',
+].join('\n');
+if (sampleOut !== expected) {
+  console.error('quote/narration split failed');
+  console.error('got:\n', sampleOut);
+  console.error('want:\n', expected);
+  process.exit(1);
+}
+console.log('quote vs narration line breaks OK');
+
 const long =
   '가'.repeat(40) + '. ' + '나'.repeat(40) + '. ' + '다'.repeat(10);
 const wOut = wrapLongLinesAt80(long).next;

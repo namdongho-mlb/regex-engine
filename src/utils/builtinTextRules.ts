@@ -80,7 +80,33 @@ export function wrapLongLinesAt80(
   return { next: outLines.join('\n'), count: breakCount };
 }
 
+/**
+ * 대사("…")와 지문이 한 줄에 붙어 있을 때 줄바꿈.
+ * - "대사." 지문 → 줄 분리
+ * - 지문. "대사" → 줄 분리
+ */
+export function applyQuoteNarrationLinebreaks(text: string): {
+  next: string;
+  count: number;
+} {
+  let count = 0;
+  const afterQuoteToNarrative = /(?<=[\u201D"])\s+(?=[^\u201C"\n])/g;
+  const narrativeToOpeningQuote = /(?<=[^\u201C"\n])\s+(?=[\u201C"])/g;
+
+  let next = text.replace(afterQuoteToNarrative, () => {
+    count += 1;
+    return '\n';
+  });
+  next = next.replace(narrativeToOpeningQuote, () => {
+    count += 1;
+    return '\n';
+  });
+
+  return { next, count };
+}
+
 export const BUILTIN_HANDLER_IDS = {
   dialogueCorner: 9104,
   wrap80: 9105,
+  quoteNarration: 9107,
 } as const;
