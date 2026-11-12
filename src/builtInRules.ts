@@ -4,6 +4,16 @@ import type { RegexRule } from './types';
 export function createCoreBuiltinRules(): RegexRule[] {
   return [
     {
+      id: 9109,
+      enabled: true,
+      // 괄호 안 한자 주석 삭제: 해외(海外) → 해외
+      pattern: String.raw`(?:\(|[\uFF08])[^)\uFF09\r\n]*[\u4E00-\u9FFF\u3400-\u4DBF][^)\uFF09\r\n]*(?:\)|[\uFF09])`,
+      replacement: '',
+      flags: { g: true, i: false, m: false, s: false },
+      matchCount: null,
+      error: null,
+    },
+    {
       id: 9101,
       enabled: true,
       pattern: ' {2,}',
@@ -80,6 +90,7 @@ export function createCoreBuiltinRules(): RegexRule[] {
 }
 
 export const BUILTIN_RULE_LABELS: Record<number, string> = {
+  9109: '괄호 안 한자 삭제',
   9101: '연속 공백 → 1칸',
   9102: '"]" 뒤 줄바꿈',
   9103: '동일 기호 반복 축소',

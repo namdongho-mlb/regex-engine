@@ -1,6 +1,9 @@
 const LEFT = '\u300C';
 const RIGHT = '\u300D';
 
+const KANJI_PAREN =
+  /(?:\(|[\uFF08])[^)\uFF09\r\n]*[\u4E00-\u9FFF\u3400-\u4DBF][^)\uFF09\r\n]*(?:\)|[\uFF09])/g;
+
 const RULES = [
   [' {2,}', ' ', 'g'],
   [String.raw`\]\s*`, ']\n', 'g'],
@@ -69,6 +72,15 @@ function wrapLongLinesAt80(text, maxLen = 80) {
   }
   return { next: outLines.join('\n'), count: breakCount };
 }
+
+const kanjiSample =
+  '해외(海外)로 전근(轉勤)해 버렸다．시로(志郎)는 아버지가 재혼(再婚)하는데';
+const kanjiOut = kanjiSample.replace(KANJI_PAREN, '');
+if (kanjiOut !== '해외로 전근해 버렸다．시로는 아버지가 재혼하는데') {
+  console.error('kanji paren removal failed:', JSON.stringify(kanjiOut));
+  process.exit(1);
+}
+console.log('kanji in parentheses removal OK');
 
 let out = applyRegexRules('a..b  c] d==e');
 if (out !== 'a.b c]\nd=e') {
