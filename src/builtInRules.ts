@@ -27,6 +27,16 @@ export function createPostConvertBuiltinRules(): RegexRule[] {
       matchCount: null,
       error: null,
     },
+    {
+      id: 9112,
+      enabled: true,
+      // (…) […] 괄호 생각 뒤 대괄호 주석은 다음 줄
+      pattern: String.raw`\)\s+(?=\[)`,
+      replacement: ')\n',
+      flags: { g: true, i: false, m: false, s: false },
+      matchCount: null,
+      error: null,
+    },
   ];
 }
 
@@ -123,6 +133,7 @@ export const BUILTIN_RULE_LABELS: Record<number, string> = {
   9109: '괄호 안 한자 삭제',
   9110: '괄호 생각 ?) 합치기',
   9111: '괄호 생각문 줄 배치',
+  9112: ') 뒤 [ 주석 줄바꿈',
   9101: '연속 공백 → 1칸',
   9102: '"]" 뒤 줄바꿈',
   9103: '동일 기호 반복 축소',

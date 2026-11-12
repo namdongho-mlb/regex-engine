@@ -168,6 +168,17 @@ if (multilineOut !== multilineExpected) {
 }
 console.log('multiline paren thought layout OK');
 
+const parenBracket =
+  '(뭐야? 성 아토 학원 2학년 3반) [우타 히카리?]';
+const parenBracketOut = parenBracket.replace(/\)\s+(?=\[)/g, ')\n');
+const parenBracketExpected =
+  '(뭐야? 성 아토 학원 2학년 3반)\n[우타 히카리?]';
+if (parenBracketOut !== parenBracketExpected) {
+  console.error(') [ bracket break failed:', JSON.stringify(parenBracketOut));
+  process.exit(1);
+}
+console.log(') [ bracket line break OK');
+
 let out = applyRegexRules('a..b  c] d==e');
 if (out !== 'a.b c]\nd=e') {
   console.error('regex rules failed');
