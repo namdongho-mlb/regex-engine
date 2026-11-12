@@ -1,5 +1,41 @@
 import type { RegexRule } from './types';
 
+/** convert.py 전에 적용 — 괄호 생각문 정리 */
+export function createPreConvertBuiltinRules(): RegexRule[] {
+  return [
+    {
+      id: 9110,
+      enabled: true,
+      // (…? 줄바꿈 ) → (…?)
+      pattern: String.raw`\?[\s\n\r]+\)`,
+      replacement: '?)',
+      flags: { g: true, i: false, m: false, s: false },
+      matchCount: null,
+      error: null,
+    },
+    {
+      id: 9111,
+      enabled: true,
+      // (. ) 뒤 본문 → 줄바꿈
+      pattern: String.raw`\.\s+\)\s+`,
+      replacement: '. ) \n',
+      flags: { g: true, i: false, m: false, s: false },
+      matchCount: null,
+      error: null,
+    },
+    {
+      id: 9112,
+      enabled: true,
+      // (…?) 뒤 본문 → 줄바꿈
+      pattern: String.raw`\?\)\s+`,
+      replacement: '?) \n',
+      flags: { g: true, i: false, m: false, s: false },
+      matchCount: null,
+      error: null,
+    },
+  ];
+}
+
 /** 화면에 표시되지 않는 내장 기본 규칙 (항상 적용) */
 export function createCoreBuiltinRules(): RegexRule[] {
   return [
@@ -91,6 +127,9 @@ export function createCoreBuiltinRules(): RegexRule[] {
 
 export const BUILTIN_RULE_LABELS: Record<number, string> = {
   9109: '괄호 안 한자 삭제',
+  9110: '괄호 생각 ?) 합치기',
+  9111: '. ) 뒤 줄바꿈',
+  9112: '?) 뒤 줄바꿈',
   9101: '연속 공백 → 1칸',
   9102: '"]" 뒤 줄바꿈',
   9103: '동일 기호 반복 축소',

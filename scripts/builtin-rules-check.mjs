@@ -82,6 +82,33 @@ if (kanjiOut !== '해외로 전근해 버렸다．시로는 아버지가 재혼�
 }
 console.log('kanji in parentheses removal OK');
 
+function applyPreConvertParenRules(text) {
+  let next = text.replace(/\?[\s\n\r]+\)/g, '?)');
+  next = next.replace(/\.\s+\)\s+/g, '. ) \n');
+  next = next.replace(/\?\)\s+/g, '?) \n');
+  return next;
+}
+
+const parenThought = [
+  '(벌써 폐점 시간으로부터 30분이나 지났군. ) 마사시의 생각은 이어졌다.',
+  '(연락처라도 알아둘까?',
+  ') 마사시는 녀를 데려 가기로 했다.',
+].join('\n');
+const parenOut = applyPreConvertParenRules(parenThought);
+const parenExpected = [
+  '(벌써 폐점 시간으로부터 30분이나 지났군. ) ',
+  '마사시의 생각은 이어졌다.',
+  '(연락처라도 알아둘까?) ',
+  '마사시는 녀를 데려 가기로 했다.',
+].join('\n');
+if (parenOut !== parenExpected) {
+  console.error('paren thought rules failed');
+  console.error('got:\n', JSON.stringify(parenOut));
+  console.error('want:\n', JSON.stringify(parenExpected));
+  process.exit(1);
+}
+console.log('parenthetical thought rules OK');
+
 let out = applyRegexRules('a..b  c] d==e');
 if (out !== 'a.b c]\nd=e') {
   console.error('regex rules failed');

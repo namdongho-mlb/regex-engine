@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { createCoreBuiltinRules } from '../builtInRules';
+import {
+  createCoreBuiltinRules,
+  createPreConvertBuiltinRules,
+} from '../builtInRules';
 import { createEmptyRules } from '../defaultRules';
 import {
   DEFAULT_PY_PATH,
@@ -72,7 +75,11 @@ function mapPyToHiddenRules(pyRules: RegexRule[]): RegexRule[] {
 }
 
 function buildHiddenRules(pyRules: RegexRule[]): RegexRule[] {
-  return [...mapPyToHiddenRules(pyRules), ...createCoreBuiltinRules()];
+  return [
+    ...createPreConvertBuiltinRules(),
+    ...mapPyToHiddenRules(pyRules),
+    ...createCoreBuiltinRules(),
+  ];
 }
 
 export function useLocalRules() {
