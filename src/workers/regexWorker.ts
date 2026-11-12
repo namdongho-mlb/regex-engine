@@ -2,6 +2,7 @@
 
 import {
   applyDialogueCornerQuotes,
+  applyParagraphSpacing,
   applyQuoteNarrationLinebreaks,
   BUILTIN_HANDLER_IDS,
   wrapLongLinesAt80,
@@ -63,6 +64,9 @@ function applyBuiltinById(
   }
   if (ruleId === BUILTIN_HANDLER_IDS.quoteNarration) {
     return applyQuoteNarrationLinebreaks(text);
+  }
+  if (ruleId === BUILTIN_HANDLER_IDS.paragraphSpacing) {
+    return applyParagraphSpacing(text);
   }
   return null;
 }

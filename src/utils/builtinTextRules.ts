@@ -105,8 +105,55 @@ export function applyQuoteNarrationLinebreaks(text: string): {
   return { next, count };
 }
 
+const SENTENCE_SPLIT_RE = /(?<=[.!?？。])(?=\s)/;
+const PARAGRAPH_SIZES = [6, 5, 7] as const;
+
+function toSentenceLines(text: string): string[] {
+  const normalized = text.replace(/\n{2,}/g, '\n').trim();
+  if (!normalized) return [];
+
+  const rawLines = normalized.split('\n').map((line) => line.trim());
+  const nonEmpty = rawLines.filter((line) => line.length > 0);
+  if (nonEmpty.length >= 2) return nonEmpty;
+
+  return normalized
+    .split(SENTENCE_SPLIT_RE)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
+/**
+ * 연속된 문장 사이에 5~7문장 단위로 빈 줄을 삽입해 단락을 나눈다.
+ */
+export function applyParagraphSpacing(text: string): {
+  next: string;
+  count: number;
+} {
+  const lines = toSentenceLines(text);
+  if (lines.length <= PARAGRAPH_SIZES[0]) {
+    return { next: lines.join('\n'), count: 0 };
+  }
+
+  const paragraphs: string[] = [];
+  let blankInserts = 0;
+  let index = 0;
+  let paraIndex = 0;
+
+  while (index < lines.length) {
+    const size = PARAGRAPH_SIZES[paraIndex % PARAGRAPH_SIZES.length] ?? 6;
+    const chunk = lines.slice(index, index + size);
+    paragraphs.push(chunk.join('\n'));
+    index += chunk.length;
+    paraIndex += 1;
+    if (index < lines.length) blankInserts += 1;
+  }
+
+  return { next: paragraphs.join('\n\n'), count: blankInserts };
+}
+
 export const BUILTIN_HANDLER_IDS = {
   dialogueCorner: 9104,
   wrap80: 9105,
   quoteNarration: 9107,
+  paragraphSpacing: 9108,
 } as const;

@@ -138,4 +138,42 @@ if (wLines.length < 2 || wLines.some((l) => l.length > 85)) {
 }
 console.log('wrap 80 OK, lines:', wLines.length);
 
+function applyParagraphSpacing(text) {
+  const nonEmpty = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  const sizes = [6, 5, 7];
+  const paragraphs = [];
+  let index = 0;
+  let paraIndex = 0;
+  let blankInserts = 0;
+  while (index < nonEmpty.length) {
+    const size = sizes[paraIndex % sizes.length];
+    const chunk = nonEmpty.slice(index, index + size);
+    paragraphs.push(chunk.join('\n'));
+    index += chunk.length;
+    paraIndex += 1;
+    if (index < nonEmpty.length) blankInserts += 1;
+  }
+  return { next: paragraphs.join('\n\n'), count: blankInserts };
+}
+
+const narrative = [
+  '그리고 후일, 가다기리는 뜻밖에 마미의 모친을 대면하게 된다.',
+  '가다기리는 휴일로서 집에 혼자만 있었다.',
+  '아침 일찍 시즈에는 스키를 타러 갔으며, 마미는 학교 친구들하고 디즈니랜드로 구경하러 가서 저녁때까지는 돌아오지 않는다.',
+  '오늘은 여자친구들만 5명이 간다고 하므로 약간의 용돈까지 주었다.',
+  '오랫만의 휴일이지만, 그는 오래 전부터 집에서 혼자 지내는 것이 조금도 괴롭지 않았다.',
+  '외출하는 것을 그다지 좋아하지 않았으며, 혼자서 독서를 하거나 음악을 듣는 것이 성격 에 맞았던 것이다.',
+  '마미를 배웅한 가다기리는 현관문을 잠가놓고 커피물을 끓였으며, 이어 2층의 서재로 올라갔다.',
+  '그러자 얼마 후 차임소리가 났다.',
+].join('\n');
+const paraOut = applyParagraphSpacing(narrative).next;
+if (!paraOut.includes('성격 에 맞았던 것이다.\n\n마미를 배웅한')) {
+  console.error('paragraph spacing failed:\n', paraOut);
+  process.exit(1);
+}
+console.log('paragraph spacing OK');
+
 console.log('All builtin checks passed');

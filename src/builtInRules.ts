@@ -67,6 +67,15 @@ export function createCoreBuiltinRules(): RegexRule[] {
       matchCount: null,
       error: null,
     },
+    {
+      id: 9108,
+      enabled: true,
+      pattern: '__builtin_paragraph_spacing__',
+      replacement: '',
+      flags: { g: true, i: false, m: false, s: false },
+      matchCount: null,
+      error: null,
+    },
   ];
 }
 
@@ -78,6 +87,7 @@ export const BUILTIN_RULE_LABELS: Record<number, string> = {
   9105: '80자 초과 문장 줄바꿈',
   9106: '"…" 대사 구간 줄바꿈',
   9107: '대사·지문 줄 분리',
+  9108: '5~7문장 단락 빈 줄',
 };
 
 export function builtinRuleLabel(ruleId: number, pattern: string): string {
