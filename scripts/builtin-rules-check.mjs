@@ -84,6 +84,16 @@ if (!dOut.includes(`\n${LEFT}일찍부터 기다렸네${RIGHT}\n`)) {
 }
 console.log('dialogue corner quotes OK');
 
+const DQ = '"';
+const chain = `${DQ}사실은 말예요.${DQ} ${DQ}2층의 6평짜리 방 하나, 우리는 쓰지 않고 있잖아요?${DQ} ${DQ}무슨 소리야?.${DQ}`;
+const chainOut = chain.replace(/(?<=[\u201D"])\s+(?=[\u201C"])/g, '\n');
+const chainLines = chainOut.split('\n').filter(Boolean);
+if (chainLines.length !== 3) {
+  console.error('quoted dialogue split failed:', JSON.stringify(chainOut));
+  process.exit(1);
+}
+console.log('quoted dialogue line breaks OK');
+
 const long =
   '가'.repeat(40) + '. ' + '나'.repeat(40) + '. ' + '다'.repeat(10);
 const wOut = wrapLongLinesAt80(long).next;

@@ -40,6 +40,16 @@ export function createCoreBuiltinRules(): RegexRule[] {
       error: null,
     },
     {
+      id: 9106,
+      enabled: true,
+      // 큰따옴표(") 대사 블록이 연속될 때 서로 다른 대사 사이 줄바꿈
+      pattern: String.raw`(?<=[\u201D"])\s+(?=[\u201C"])`,
+      replacement: '\n',
+      flags: { g: true, i: false, m: false, s: false },
+      matchCount: null,
+      error: null,
+    },
+    {
       id: 9105,
       enabled: true,
       pattern: '__builtin_wrap_80__',
@@ -57,6 +67,7 @@ export const BUILTIN_RULE_LABELS: Record<number, string> = {
   9103: '동일 기호 반복 축소',
   9104: '「」 대사 줄바꿈',
   9105: '80자 초과 문장 줄바꿈',
+  9106: '"…" 대사 구간 줄바꿈',
 };
 
 export function builtinRuleLabel(ruleId: number, pattern: string): string {

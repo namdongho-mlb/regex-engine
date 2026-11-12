@@ -39,7 +39,7 @@ export function RulePanel({
           </div>
           {!rulesLoading && (
             <p className="mt-1 px-2 text-xs text-slate-400">
-              기본 규칙 {hiddenRuleCount}개(convert.py + 내장 5개)는 자동 적용되며
+              기본 규칙 {hiddenRuleCount}개(convert.py + 내장 6개)는 자동 적용되며
               화면에 표시되지 않습니다. 아래는 추가 사용자 규칙({rules.length}
               칸)입니다.
               {rulesSource && ` · 기본 규칙 출처: ${rulesSource}`}
