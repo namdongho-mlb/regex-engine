@@ -6,6 +6,7 @@ import {
   applyParentheticalThoughtLayout,
   applyQuoteNarrationLinebreaks,
   joinSplitParentheticalClose,
+  normalizeSquareBracketBlock,
   BUILTIN_HANDLER_IDS,
   wrapLongLinesAt80,
 } from '../utils/builtinTextRules';
@@ -75,6 +76,9 @@ function applyBuiltinById(
   }
   if (ruleId === BUILTIN_HANDLER_IDS.parenThoughtLayout) {
     return applyParentheticalThoughtLayout(text);
+  }
+  if (ruleId === BUILTIN_HANDLER_IDS.squareBracketBlock) {
+    return normalizeSquareBracketBlock(text);
   }
   return null;
 }

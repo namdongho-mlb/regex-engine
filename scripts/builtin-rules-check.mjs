@@ -179,6 +179,35 @@ if (parenBracketOut !== parenBracketExpected) {
 }
 console.log(') [ bracket line break OK');
 
+function normalizeSquareBracketBlock(text) {
+  return text.replace(/\[([\s\S]*?)\]/g, (_, inner) => {
+    let body = inner.replace(/\n[ \t]*\n+/g, '\n');
+    body = body.replace(/\n{2,}/g, '\n');
+    body = body.replace(/(?<=[.!?？。…])\s+/g, '\n');
+    return `[${body.trim()}]`;
+  });
+}
+
+const bracketBlock = [
+  '[기다리고 있었습니다.',
+  '',
+  '히카리의 어머니 되시죠?]',
+].join('\n');
+const bracketAfterConvert = convertPyRule1(bracketBlock);
+const bracketBlockOut = normalizeSquareBracketBlock(bracketAfterConvert);
+const bracketBlockExpected = [
+  '[기다리고 있었습니다.',
+  '히카리의 어머니 되시죠?]',
+].join('\n');
+if (bracketBlockOut !== bracketBlockExpected) {
+  console.error('square bracket block failed');
+  console.error('after convert:', JSON.stringify(bracketAfterConvert));
+  console.error('got:', JSON.stringify(bracketBlockOut));
+  console.error('want:', JSON.stringify(bracketBlockExpected));
+  process.exit(1);
+}
+console.log('square bracket block OK');
+
 let out = applyRegexRules('a..b  c] d==e');
 if (out !== 'a.b c]\nd=e') {
   console.error('regex rules failed');

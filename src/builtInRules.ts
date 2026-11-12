@@ -37,6 +37,15 @@ export function createPostConvertBuiltinRules(): RegexRule[] {
       matchCount: null,
       error: null,
     },
+    {
+      id: 9113,
+      enabled: true,
+      pattern: '__builtin_square_bracket_block__',
+      replacement: '',
+      flags: { g: true, i: false, m: false, s: false },
+      matchCount: null,
+      error: null,
+    },
   ];
 }
 
@@ -134,6 +143,7 @@ export const BUILTIN_RULE_LABELS: Record<number, string> = {
   9110: '괄호 생각 ?) 합치기',
   9111: '괄호 생각문 줄 배치',
   9112: ') 뒤 [ 주석 줄바꿈',
+  9113: '[ ] 안 빈 줄 제거',
   9101: '연속 공백 → 1칸',
   9102: '"]" 뒤 줄바꿈',
   9103: '동일 기호 반복 축소',

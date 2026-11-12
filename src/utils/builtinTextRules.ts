@@ -199,6 +199,30 @@ export function applyParentheticalThoughtLayout(text: string): {
   return { next, count };
 }
 
+/** […] 안 빈 줄 제거, convert 합침 이후 문장 줄바꿈 복원 */
+export function normalizeSquareBracketBlock(text: string): {
+  next: string;
+  count: number;
+} {
+  let count = 0;
+  const next = text.replace(/\[([\s\S]*?)\]/g, (_, inner) => {
+    let body = inner.replace(/\n[ \t]*\n+/g, () => {
+      count += 1;
+      return '\n';
+    });
+    body = body.replace(/\n{2,}/g, () => {
+      count += 1;
+      return '\n';
+    });
+    body = body.replace(/(?<=[.!?？。…])\s+/g, () => {
+      count += 1;
+      return '\n';
+    });
+    return `[${body.trim()}]`;
+  });
+  return { next, count };
+}
+
 export const BUILTIN_HANDLER_IDS = {
   dialogueCorner: 9104,
   wrap80: 9105,
@@ -206,4 +230,5 @@ export const BUILTIN_HANDLER_IDS = {
   paragraphSpacing: 9108,
   joinParenClose: 9110,
   parenThoughtLayout: 9111,
+  squareBracketBlock: 9113,
 } as const;
