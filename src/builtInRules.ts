@@ -30,6 +30,24 @@ export function createCoreBuiltinRules(): RegexRule[] {
       matchCount: null,
       error: null,
     },
+    {
+      id: 9104,
+      enabled: true,
+      pattern: '__builtin_dialogue_corner__',
+      replacement: '',
+      flags: { g: true, i: false, m: false, s: false },
+      matchCount: null,
+      error: null,
+    },
+    {
+      id: 9105,
+      enabled: true,
+      pattern: '__builtin_wrap_80__',
+      replacement: '',
+      flags: { g: true, i: false, m: false, s: false },
+      matchCount: null,
+      error: null,
+    },
   ];
 }
 
@@ -37,6 +55,8 @@ export const BUILTIN_RULE_LABELS: Record<number, string> = {
   9101: '연속 공백 → 1칸',
   9102: '"]" 뒤 줄바꿈',
   9103: '동일 기호 반복 축소',
+  9104: '「」 대사 줄바꿈',
+  9105: '80자 초과 문장 줄바꿈',
 };
 
 export function builtinRuleLabel(ruleId: number, pattern: string): string {

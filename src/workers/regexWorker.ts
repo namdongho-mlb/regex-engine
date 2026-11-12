@@ -1,5 +1,11 @@
 /// <reference lib="webworker" />
 
+import {
+  applyDialogueCornerQuotes,
+  BUILTIN_HANDLER_IDS,
+  wrapLongLinesAt80,
+} from '../utils/builtinTextRules';
+
 export {};
 
 interface WorkerRulePayload {
@@ -44,9 +50,27 @@ function isPatternEmpty(pattern: string): boolean {
   return /^\s*$/.test(pattern);
 }
 
+function applyBuiltinById(
+  ruleId: number,
+  text: string,
+): { next: string; count: number } | null {
+  if (ruleId === BUILTIN_HANDLER_IDS.dialogueCorner) {
+    return applyDialogueCornerQuotes(text);
+  }
+  if (ruleId === BUILTIN_HANDLER_IDS.wrap80) {
+    return wrapLongLinesAt80(text);
+  }
+  return null;
+}
+
 function applyRule(text: string, rule: WorkerRulePayload) {
   if (!rule.enabled || isPatternEmpty(rule.pattern)) {
     return { next: text, count: 0, skipped: true as const };
+  }
+
+  const builtin = applyBuiltinById(rule.id, text);
+  if (builtin) {
+    return { next: builtin.next, count: builtin.count, skipped: false as const };
   }
 
   try {
