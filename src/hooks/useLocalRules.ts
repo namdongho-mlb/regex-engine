@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { createConvertPresetRules } from '../defaultRules';
+import { createCoreBuiltinRules } from '../builtInRules';
+import { createEmptyRules } from '../defaultRules';
 import {
   DEFAULT_PY_PATH,
-  mergePyRulesWithStored,
   parsePyRules,
 } from '../utils/parsePyRules';
-import type { RegexRule } from '../types';
+import { isPatternEmpty, type RegexRule } from '../types';
 
-const STORAGE_KEY = 'regex-sequential-rules-v3';
+const STORAGE_KEY = 'regex-sequential-rules-v4-visible';
 
 interface PersistedRule {
   id: number;
@@ -17,7 +17,7 @@ interface PersistedRule {
   flags: RegexRule['flags'];
 }
 
-function readStoredRules(): PersistedRule[] | null {
+function readStoredVisibleRules(): PersistedRule[] | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
@@ -38,41 +38,60 @@ function toPersisted(rules: RegexRule[]): PersistedRule[] {
   }));
 }
 
-function normalizeImported(parsed: PersistedRule[]): RegexRule[] {
-  return parsed.map((found, index) => ({
-    id: found.id ?? index + 1,
-    enabled: found.enabled !== false,
-    pattern: String(found.pattern ?? ''),
-    replacement: String(found.replacement ?? ''),
-    flags: {
-      g: found.flags?.g ?? true,
-      i: Boolean(found.flags?.i),
-      m: Boolean(found.flags?.m),
-      s: Boolean(found.flags?.s),
-    },
+function normalizeVisibleRules(parsed: PersistedRule[] | null): RegexRule[] {
+  const base = createEmptyRules();
+  if (!parsed) return base;
+  return base.map((slot, index) => {
+    const found = parsed.find((r) => r.id === slot.id) ?? parsed[index];
+    if (!found) return slot;
+    return {
+      ...slot,
+      enabled: found.enabled !== false,
+      pattern: String(found.pattern ?? ''),
+      replacement: String(found.replacement ?? ''),
+      flags: {
+        g: found.flags?.g ?? true,
+        i: Boolean(found.flags?.i),
+        m: Boolean(found.flags?.m),
+        s: Boolean(found.flags?.s),
+      },
+      matchCount: null,
+      error: null,
+    };
+  });
+}
+
+function mapPyToHiddenRules(pyRules: RegexRule[]): RegexRule[] {
+  return pyRules.map((rule, index) => ({
+    ...rule,
+    id: 9001 + index,
+    enabled: true,
     matchCount: null,
     error: null,
   }));
 }
 
+function buildHiddenRules(pyRules: RegexRule[]): RegexRule[] {
+  return [...mapPyToHiddenRules(pyRules), ...createCoreBuiltinRules()];
+}
+
 export function useLocalRules() {
-  const [rules, setRules] = useState<RegexRule[]>(() => createConvertPresetRules());
+  const [rules, setRules] = useState<RegexRule[]>(() =>
+    normalizeVisibleRules(readStoredVisibleRules()),
+  );
+  const [hiddenRules, setHiddenRules] = useState<RegexRule[]>(() =>
+    buildHiddenRules([]),
+  );
   const [rulesLoading, setRulesLoading] = useState(true);
   const [rulesSource, setRulesSource] = useState<string | null>(null);
   const [rulesLoadError, setRulesLoadError] = useState<string | null>(null);
 
-  const applyPyContent = useCallback(
-    (content: string, sourceLabel: string, preserveEnabled = true) => {
-      const pyRules = parsePyRules(content);
-      const stored = preserveEnabled ? readStoredRules() : null;
-      const merged = mergePyRulesWithStored(pyRules, stored);
-      setRules(merged);
-      setRulesSource(sourceLabel);
-      setRulesLoadError(null);
-      return merged;
-    },
-    [],
-  );
+  const applyPyContent = useCallback((content: string, sourceLabel: string) => {
+    const pyRules = parsePyRules(content);
+    setHiddenRules(buildHiddenRules(pyRules));
+    setRulesSource(sourceLabel);
+    setRulesLoadError(null);
+  }, []);
 
   const loadFromPyUrl = useCallback(
     async (url = DEFAULT_PY_PATH, sourceLabel = 'convert.py') => {
@@ -83,19 +102,13 @@ export function useLocalRules() {
           throw new Error(`${sourceLabel} 파일을 불러올 수 없습니다.`);
         }
         const content = await response.text();
-        applyPyContent(content, sourceLabel, true);
+        applyPyContent(content, sourceLabel);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : '규칙 파일 로딩에 실패했습니다.';
         setRulesLoadError(message);
-        const stored = readStoredRules();
-        if (stored) {
-          setRules(normalizeImported(stored));
-          setRulesSource('localStorage');
-        } else {
-          setRules(createConvertPresetRules());
-          setRulesSource('fallback');
-        }
+        setHiddenRules(buildHiddenRules([]));
+        setRulesSource('fallback');
       } finally {
         setRulesLoading(false);
       }
@@ -153,7 +166,7 @@ export function useLocalRules() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'regex-rules.json';
+    a.download = 'regex-rules-user.json';
     a.click();
     URL.revokeObjectURL(url);
   }, [rules]);
@@ -166,7 +179,7 @@ export function useLocalRules() {
           try {
             const text = String(reader.result ?? '');
             if (file.name.endsWith('.py')) {
-              applyPyContent(text, file.name, false);
+              applyPyContent(text, file.name);
               resolve();
               return;
             }
@@ -174,9 +187,7 @@ export function useLocalRules() {
             if (!Array.isArray(parsed) || parsed.length === 0) {
               throw new Error('유효하지 않은 규칙 파일입니다.');
             }
-            setRules(normalizeImported(parsed));
-            setRulesSource(file.name);
-            setRulesLoadError(null);
+            setRules(normalizeVisibleRules(parsed));
             resolve();
           } catch (err) {
             reject(err instanceof Error ? err : new Error('가져오기 실패'));
@@ -192,12 +203,13 @@ export function useLocalRules() {
   const resetRules = useCallback(() => {
     if (
       !window.confirm(
-        'convert.py에서 규칙을 다시 불러오고 적용/제외 설정을 초기화하시겠습니까?',
+        '사용자 규칙을 비우고 convert.py 기본 규칙을 다시 불러오시겠습니까?',
       )
     ) {
       return;
     }
     localStorage.removeItem(STORAGE_KEY);
+    setRules(createEmptyRules());
     void loadFromPyUrl(DEFAULT_PY_PATH, 'convert.py');
   }, [loadFromPyUrl]);
 
@@ -205,8 +217,14 @@ export function useLocalRules() {
     void loadFromPyUrl(DEFAULT_PY_PATH, 'convert.py');
   }, [loadFromPyUrl]);
 
+  const hiddenRuleCount = hiddenRules.filter(
+    (r) => r.enabled && !isPatternEmpty(r.pattern),
+  ).length;
+
   return {
     rules,
+    hiddenRules,
+    hiddenRuleCount,
     rulesLoading,
     rulesSource,
     rulesLoadError,

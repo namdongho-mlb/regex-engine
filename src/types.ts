@@ -22,6 +22,8 @@ export interface PipelineResult {
   output: string;
   totalReplacements: number;
   appliedRuleCount: number;
+  hiddenAppliedCount: number;
+  userAppliedCount: number;
   elapsedMs: number;
 }
 

@@ -105,8 +105,9 @@ export function ResultPane({
         <div className="text-sm text-slate-600">
           {result ? (
             <span>
-              총 {result.totalReplacements}건 치환 / 규칙{' '}
-              {result.appliedRuleCount}개 적용 / 처리시간 {result.elapsedMs}ms
+              총 {result.totalReplacements}건 치환 / 기본 {result.hiddenAppliedCount}
+              + 사용자 {result.userAppliedCount}개 적용 / 처리시간{' '}
+              {result.elapsedMs}ms
             </span>
           ) : (
             <span className="text-slate-400">결과 요약</span>

@@ -13,6 +13,8 @@ const MAX_WARN_BYTES = 10 * 1024 * 1024;
 export default function App() {
   const {
     rules,
+    hiddenRules,
+    hiddenRuleCount,
     rulesLoading,
     rulesSource,
     rulesLoadError,
@@ -26,7 +28,13 @@ export default function App() {
   } = useLocalRules();
 
   const { isRunning, canRun, result, runError, hasExecuted, run, setRunError } =
-    useRegexPipeline(rules, updateRule, setMatchCounts, clearMatchCounts);
+    useRegexPipeline(
+      hiddenRules,
+      rules,
+      updateRule,
+      setMatchCounts,
+      clearMatchCounts,
+    );
 
   const [source, setSource] = useState('');
   const [fileMeta, setFileMeta] = useState<FileMeta | null>(null);
@@ -99,6 +107,7 @@ export default function App() {
         rulesLoading={rulesLoading}
         rulesSource={rulesSource}
         rulesLoadError={rulesLoadError}
+        hiddenRuleCount={hiddenRuleCount}
       />
 
       <ResultPane

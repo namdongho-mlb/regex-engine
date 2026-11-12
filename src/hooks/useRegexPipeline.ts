@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { builtinRuleLabel, isHiddenRuleId } from '../builtInRules';
 import {
   flagsToString,
   isPatternEmpty,
@@ -40,7 +41,15 @@ function hasRunnableRules(rules: RegexRule[]): boolean {
   return rules.some((r) => r.enabled && !isPatternEmpty(r.pattern));
 }
 
+function ruleDisplayName(rule: RegexRule): string {
+  if (isHiddenRuleId(rule.id)) {
+    return builtinRuleLabel(rule.id, rule.pattern);
+  }
+  return `규칙 ${rule.id}번`;
+}
+
 export function useRegexPipeline(
+  hiddenRules: RegexRule[],
   rules: RegexRule[],
   updateRule: (id: number, patch: Partial<Omit<RegexRule, 'id'>>) => void,
   setMatchCounts: (counts: Record<number, number | null>) => void,
@@ -52,6 +61,11 @@ export function useRegexPipeline(
   const [hasExecuted, setHasExecuted] = useState(false);
   const workerRef = useRef<Worker | null>(null);
   const runIdRef = useRef(0);
+
+  const pipelineRules = useMemo(
+    () => [...hiddenRules, ...rules],
+    [hiddenRules, rules],
+  );
 
   const createWorker = useCallback(() => {
     workerRef.current?.terminate();
@@ -67,7 +81,6 @@ export function useRegexPipeline(
     };
   }, [createWorker]);
 
-  // Live pattern validation
   useEffect(() => {
     for (const rule of rules) {
       if (!rule.enabled || isPatternEmpty(rule.pattern)) {
@@ -79,7 +92,6 @@ export function useRegexPipeline(
         updateRule(rule.id, { error: err });
       }
     }
-    // Only re-validate when pattern/enabled change; updateRule is stable
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     rules.map((r) => `${r.id}:${r.enabled}:${r.pattern}`).join('|'),
@@ -87,10 +99,10 @@ export function useRegexPipeline(
   ]);
 
   const canRun = useMemo(() => {
-    const hasInvalid = rules.some(
+    const hasInvalidVisible = rules.some(
       (r) => r.enabled && !isPatternEmpty(r.pattern) && r.error,
     );
-    return !hasInvalid && !isRunning;
+    return !hasInvalidVisible && !isRunning;
   }, [rules, isRunning]);
 
   const runOneInWorker = useCallback(
@@ -151,17 +163,17 @@ export function useRegexPipeline(
 
   const run = useCallback(
     async (source: string) => {
-      if (!hasRunnableRules(rules)) {
+      if (!hasRunnableRules(pipelineRules)) {
         setRunError('실행할 규칙이 없습니다');
         setResult(null);
         setHasExecuted(false);
         return;
       }
 
-      const hasInvalid = rules.some(
+      const hasInvalidVisible = rules.some(
         (r) => r.enabled && !isPatternEmpty(r.pattern) && r.error,
       );
-      if (hasInvalid) return;
+      if (hasInvalidVisible) return;
 
       const runId = ++runIdRef.current;
       setIsRunning(true);
@@ -175,9 +187,11 @@ export function useRegexPipeline(
       ) as Record<number, number | null>;
       let totalReplacements = 0;
       let appliedRuleCount = 0;
+      let hiddenAppliedCount = 0;
+      let userAppliedCount = 0;
 
       try {
-        for (const rule of rules) {
+        for (const rule of pipelineRules) {
           if (runId !== runIdRef.current) return;
           if (!rule.enabled || isPatternEmpty(rule.pattern)) continue;
 
@@ -185,24 +199,29 @@ export function useRegexPipeline(
             const response = await runOneInWorker(text, rule);
             if (runId !== runIdRef.current) return;
             text = response.output;
-            counts[rule.id] = response.count;
             totalReplacements += response.count;
             appliedRuleCount += 1;
+            if (isHiddenRuleId(rule.id)) {
+              hiddenAppliedCount += 1;
+            } else {
+              userAppliedCount += 1;
+              counts[rule.id] = response.count;
+            }
           } catch (err) {
             if (runId !== runIdRef.current) return;
             const message = err instanceof Error ? err.message : String(err);
+            const name = ruleDisplayName(rule);
             if (message.startsWith('TIMEOUT:')) {
-              const ruleId = Number(message.split(':')[1]);
-              setRunError(
-                `규칙 ${ruleId}번 처리 시간 초과 — 패턴을 확인하세요`,
-              );
+              setRunError(`${name} 처리 시간 초과 — 패턴을 확인하세요`);
               setMatchCounts(counts);
               setResult(null);
               setHasExecuted(true);
               return;
             }
-            updateRule(rule.id, { error: message });
-            setRunError(`규칙 ${rule.id}번 오류: ${message}`);
+            if (!isHiddenRuleId(rule.id)) {
+              updateRule(rule.id, { error: message });
+            }
+            setRunError(`${name} 오류: ${message}`);
             setMatchCounts(counts);
             setResult(null);
             setHasExecuted(true);
@@ -216,6 +235,8 @@ export function useRegexPipeline(
           output: text,
           totalReplacements,
           appliedRuleCount,
+          hiddenAppliedCount,
+          userAppliedCount,
           elapsedMs: Math.round(performance.now() - started),
         });
         setHasExecuted(true);
@@ -225,7 +246,7 @@ export function useRegexPipeline(
         }
       }
     },
-    [rules, clearMatchCounts, runOneInWorker, setMatchCounts, updateRule],
+    [pipelineRules, rules, clearMatchCounts, runOneInWorker, setMatchCounts, updateRule],
   );
 
   return {

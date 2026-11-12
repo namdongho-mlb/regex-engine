@@ -11,6 +11,7 @@ interface RulePanelProps {
   rulesLoading?: boolean;
   rulesSource?: string | null;
   rulesLoadError?: string | null;
+  hiddenRuleCount?: number;
 }
 
 export function RulePanel({
@@ -22,6 +23,7 @@ export function RulePanel({
   rulesLoading = false,
   rulesSource,
   rulesLoadError,
+  hiddenRuleCount = 0,
 }: RulePanelProps) {
   return (
     <div className="border border-slate-200 rounded-md bg-white p-3">
@@ -35,9 +37,12 @@ export function RulePanel({
             <span className="w-[124px]">플래그</span>
             <span className="text-right">매치</span>
           </div>
-          {rulesSource && !rulesLoading && (
+          {!rulesLoading && (
             <p className="mt-1 px-2 text-xs text-slate-400">
-              규칙 출처: {rulesSource} ({rules.length}개)
+              기본 규칙 {hiddenRuleCount}개(convert.py + 내장 3개)는 자동 적용되며
+              화면에 표시되지 않습니다. 아래는 추가 사용자 규칙({rules.length}
+              칸)입니다.
+              {rulesSource && ` · 기본 규칙 출처: ${rulesSource}`}
             </p>
           )}
         </div>
