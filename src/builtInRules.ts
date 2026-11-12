@@ -6,9 +6,8 @@ export function createPreConvertBuiltinRules(): RegexRule[] {
     {
       id: 9110,
       enabled: true,
-      // (…? 줄바꿈 ) → (…?)
-      pattern: String.raw`\?[\s\n\r]+\)`,
-      replacement: '?)',
+      pattern: '__builtin_join_paren_close__',
+      replacement: '',
       flags: { g: true, i: false, m: false, s: false },
       matchCount: null,
       error: null,

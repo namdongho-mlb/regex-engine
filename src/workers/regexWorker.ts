@@ -5,6 +5,7 @@ import {
   applyParagraphSpacing,
   applyParentheticalCloseLinebreaks,
   applyQuoteNarrationLinebreaks,
+  joinSplitParentheticalClose,
   BUILTIN_HANDLER_IDS,
   wrapLongLinesAt80,
 } from '../utils/builtinTextRules';
@@ -68,6 +69,9 @@ function applyBuiltinById(
   }
   if (ruleId === BUILTIN_HANDLER_IDS.paragraphSpacing) {
     return applyParagraphSpacing(text);
+  }
+  if (ruleId === BUILTIN_HANDLER_IDS.joinParenClose) {
+    return joinSplitParentheticalClose(text);
   }
   if (ruleId === BUILTIN_HANDLER_IDS.parenCloseBreak) {
     return applyParentheticalCloseLinebreaks(text);

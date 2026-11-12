@@ -151,16 +151,30 @@ export function applyParagraphSpacing(text: string): {
   return { next: paragraphs.join('\n\n'), count: blankInserts };
 }
 
-/** (…?)|!)|.) ) 뒤 본문이 이어지면 줄바꿈 */
+/** (…?\n) → (…?) 처럼 닫는 괄호 앞 줄바꿈 제거 */
+export function joinSplitParentheticalClose(text: string): {
+  next: string;
+  count: number;
+} {
+  let count = 0;
+  const next = text.replace(/([?!])[\s\n\r]+\)/g, (_, punct) => {
+    count += 1;
+    return `${punct})`;
+  });
+  return { next, count };
+}
+
+/** (…?)|!)|.) 뒤 본문이 이어지면 줄바꿈 (닫는 괄호 뒤 공백 없음) */
 export function applyParentheticalCloseLinebreaks(text: string): {
   next: string;
   count: number;
 } {
   let count = 0;
-  const re = /(?:\.\s+|\.\)|[?!])\)\s+/g;
+  const re = /(?:\.\s+\)|\.\s*\)|[?!]\))\s+/g;
   const next = text.replace(re, (match) => {
     count += 1;
-    return `${match.trimEnd()} \n`;
+    const close = match.replace(/\s+$/, '');
+    return `${close}\n`;
   });
   return { next, count };
 }
@@ -170,5 +184,6 @@ export const BUILTIN_HANDLER_IDS = {
   wrap80: 9105,
   quoteNarration: 9107,
   paragraphSpacing: 9108,
+  joinParenClose: 9110,
   parenCloseBreak: 9111,
 } as const;

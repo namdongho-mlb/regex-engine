@@ -82,31 +82,34 @@ if (kanjiOut !== '해외로 전근해 버렸다．시로는 아버지가 재혼�
 }
 console.log('kanji in parentheses removal OK');
 
+function joinSplitParentheticalClose(text) {
+  return text.replace(/([?!])[\s\n\r]+\)/g, (_, punct) => `${punct})`);
+}
+
 function applyParentheticalCloseLinebreaks(text) {
-  let count = 0;
-  return text.replace(/(?:\.\s+|\.\)|[?!])\)\s+/g, (match) => {
-    count += 1;
-    return `${match.trimEnd()} \n`;
+  return text.replace(/(?:\.\s+\)|\.\s*\)|[?!]\))\s+/g, (match) => {
+    const close = match.replace(/\s+$/, '');
+    return `${close}\n`;
   });
 }
 
 function applyPreConvertParenRules(text) {
-  let next = text.replace(/\?[\s\n\r]+\)/g, '?)');
+  let next = joinSplitParentheticalClose(text);
   next = applyParentheticalCloseLinebreaks(next);
   return next;
 }
 
 const parenThought = [
-  '(벌써 폐점 시간으로부터 30분이나 지났군. ) 마사시의 생각은 이어졌다.',
-  '(연락처라도 알아둘까?',
-  ') 마사시는 녀를 데려 가기로 했다.',
+  '(벌써 폐점 시간으로부터 30분이나 지났군.) 마사시의 생각은 이어졌다.',
+  '(일단 집으로 데리고 가서 조금 혼내주고 연락처라도 알아둘까?',
+  ') 결론을  낸 마사시는 상점으로부터 그다지 떨어져있지 않은 자신의 아파트에',
 ].join('\n');
 const parenOut = applyPreConvertParenRules(parenThought);
 const parenExpected = [
-  '(벌써 폐점 시간으로부터 30분이나 지났군. ) ',
+  '(벌써 폐점 시간으로부터 30분이나 지났군.)',
   '마사시의 생각은 이어졌다.',
-  '(연락처라도 알아둘까?) ',
-  '마사시는 녀를 데려 가기로 했다.',
+  '(일단 집으로 데리고 가서 조금 혼내주고 연락처라도 알아둘까?)',
+  '결론을  낸 마사시는 상점으로부터 그다지 떨어져있지 않은 자신의 아파트에',
 ].join('\n');
 if (parenOut !== parenExpected) {
   console.error('paren thought rules failed');
@@ -120,7 +123,7 @@ const exclaim =
   '(앗! 이사람, 날 알고 있었잖아?) 젊은 마사시는 자신을 잘 모를 것이라고 생각했던 케이코는 점 다리에 힘이 빠져갔다.';
 const exclaimOut = applyPreConvertParenRules(exclaim);
 const exclaimExpected =
-  '(앗! 이사람, 날 알고 있었잖아?) \n젊은 마사시는 자신을 잘 모를 것이라고 생각했던 케이코는 점 다리에 힘이 빠져갔다.';
+  '(앗! 이사람, 날 알고 있었잖아?)\n젊은 마사시는 자신을 잘 모를 것이라고 생각했던 케이코는 점 다리에 힘이 빠져갔다.';
 if (exclaimOut !== exclaimExpected) {
   console.error('!? close paren break failed:', JSON.stringify(exclaimOut));
   process.exit(1);
