@@ -80,27 +80,51 @@ export function wrapLongLinesAt80(
   return { next: outLines.join('\n'), count: breakCount };
 }
 
+const QUOTE_DIALOGUE_PLACEHOLDER = /\x01Q(\d+)\x02/g;
+
+function maskQuoteDialogueBlocks(text: string): {
+  masked: string;
+  slots: string[];
+} {
+  const slots: string[] = [];
+  const store = (match: string) => {
+    const id = slots.length;
+    slots.push(match);
+    return `\x01Q${id}\x02`;
+  };
+  let masked = text.replace(/\u201C[\s\S]*?\u201D/g, store);
+  masked = masked.replace(/"[^"\n]*"/g, store);
+  return { masked, slots };
+}
+
+function unmaskQuoteDialogueBlocks(masked: string, slots: string[]): string {
+  return masked.replace(QUOTE_DIALOGUE_PLACEHOLDER, (_, id) => slots[Number(id)] ?? '');
+}
+
 /**
  * 대사("…")와 지문이 한 줄에 붙어 있을 때 줄바꿈.
- * - "대사." 지문 → 줄 분리
- * - 지문. "대사" → 줄 분리
+ * 대사 블록 내부 공백(여는·닫는 따옴표 직후/앞)은 유지한다.
  */
 export function applyQuoteNarrationLinebreaks(text: string): {
   next: string;
   count: number;
 } {
   let count = 0;
-  const afterQuoteToNarrative = /(?<=[\u201D"])\s+(?=[^\u201C"\n])/g;
-  const narrativeToOpeningQuote = /(?<=[^\u201C"\n])\s+(?=[\u201C"])/g;
+  const { masked, slots } = maskQuoteDialogueBlocks(text);
 
-  let next = text.replace(afterQuoteToNarrative, () => {
+  let next = masked.replace(/(\x01Q\d+\x02)\s+(?=[^\u201C"\x01\n])/g, (_, token) => {
+    count += 1;
+    return `${token}\n`;
+  });
+  next = next.replace(/(?<=[^\u201C"\x01\n])\s+(\x01Q\d+\x02)/g, (_, token) => {
+    count += 1;
+    return `\n${token}`;
+  });
+  next = next.replace(/(?<=[^\u201C"\x01\n])\s+(?=[\u201C])/g, () => {
     count += 1;
     return '\n';
   });
-  next = next.replace(narrativeToOpeningQuote, () => {
-    count += 1;
-    return '\n';
-  });
+  next = unmaskQuoteDialogueBlocks(next, slots);
 
   return { next, count };
 }

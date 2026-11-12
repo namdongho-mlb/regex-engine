@@ -234,14 +234,27 @@ console.log('quoted dialogue line breaks OK');
 
 function applyQuoteNarrationLinebreaks(text) {
   let count = 0;
-  let next = text.replace(/(?<=[\u201D"])\s+(?=[^\u201C"\n])/g, () => {
+  const slots = [];
+  const store = (m) => {
+    const id = slots.length;
+    slots.push(m);
+    return `\x01Q${id}\x02`;
+  };
+  let masked = text.replace(/\u201C[\s\S]*?\u201D/g, store);
+  masked = masked.replace(/"[^"\n]*"/g, store);
+  let next = masked.replace(/(\x01Q\d+\x02)\s+(?=[^\u201C"\x01\n])/g, (_, token) => {
+    count += 1;
+    return `${token}\n`;
+  });
+  next = next.replace(/(?<=[^\u201C"\x01\n])\s+(\x01Q\d+\x02)/g, (_, token) => {
+    count += 1;
+    return `\n${token}`;
+  });
+  next = next.replace(/(?<=[^\u201C"\x01\n])\s+(?=[\u201C])/g, () => {
     count += 1;
     return '\n';
   });
-  next = next.replace(/(?<=[^\u201C"\n])\s+(?=[\u201C"])/g, () => {
-    count += 1;
-    return '\n';
-  });
+  next = next.replace(/\x01Q(\d+)\x02/g, (_, id) => slots[Number(id)] ?? '');
   return { next, count };
 }
 
@@ -265,6 +278,14 @@ if (sampleOut !== expected) {
   process.exit(1);
 }
 console.log('quote vs narration line breaks OK');
+
+const spacedDialogue = '" 유우스케야, 네 고상한 엄마 안녕하시냐? "';
+const spacedDialogueOut = applyQuoteNarrationLinebreaks(spacedDialogue).next;
+if (spacedDialogueOut !== spacedDialogue) {
+  console.error('spaced dialogue quote failed:', JSON.stringify(spacedDialogueOut));
+  process.exit(1);
+}
+console.log('spaced dialogue quote preserved OK');
 
 const long =
   '가'.repeat(40) + '. ' + '나'.repeat(40) + '. ' + '다'.repeat(10);
