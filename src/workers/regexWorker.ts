@@ -3,7 +3,7 @@
 import {
   applyDialogueCornerQuotes,
   applyParagraphSpacing,
-  applyParentheticalCloseLinebreaks,
+  applyParentheticalThoughtLayout,
   applyQuoteNarrationLinebreaks,
   joinSplitParentheticalClose,
   BUILTIN_HANDLER_IDS,
@@ -73,8 +73,8 @@ function applyBuiltinById(
   if (ruleId === BUILTIN_HANDLER_IDS.joinParenClose) {
     return joinSplitParentheticalClose(text);
   }
-  if (ruleId === BUILTIN_HANDLER_IDS.parenCloseBreak) {
-    return applyParentheticalCloseLinebreaks(text);
+  if (ruleId === BUILTIN_HANDLER_IDS.parenThoughtLayout) {
+    return applyParentheticalThoughtLayout(text);
   }
   return null;
 }

@@ -12,10 +12,16 @@ export function createPreConvertBuiltinRules(): RegexRule[] {
       matchCount: null,
       error: null,
     },
+  ];
+}
+
+/** convert.py 직후 — 괄호 생각문 줄 단위 배치 */
+export function createPostConvertBuiltinRules(): RegexRule[] {
+  return [
     {
       id: 9111,
       enabled: true,
-      pattern: '__builtin_paren_close_break__',
+      pattern: '__builtin_paren_thought_layout__',
       replacement: '',
       flags: { g: true, i: false, m: false, s: false },
       matchCount: null,
@@ -116,7 +122,7 @@ export function createCoreBuiltinRules(): RegexRule[] {
 export const BUILTIN_RULE_LABELS: Record<number, string> = {
   9109: '괄호 안 한자 삭제',
   9110: '괄호 생각 ?) 합치기',
-  9111: '?)|!)|.) 뒤 줄바꿈',
+  9111: '괄호 생각문 줄 배치',
   9101: '연속 공백 → 1칸',
   9102: '"]" 뒤 줄바꿈',
   9103: '동일 기호 반복 축소',

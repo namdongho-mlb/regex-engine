@@ -87,15 +87,26 @@ function joinSplitParentheticalClose(text) {
 }
 
 function applyParentheticalCloseLinebreaks(text) {
-  return text.replace(/(?:\.\s+\)|\.\s*\)|[?!]\))\s+/g, (match) => {
+  return text.replace(/(?:\.\s+\)|\.\s*\)|\.\.\.\)|[?!]\))\s+/g, (match) => {
     const close = match.replace(/\s+$/, '');
     return `${close}\n`;
   });
 }
 
-function applyPreConvertParenRules(text) {
-  let next = joinSplitParentheticalClose(text);
+function applyParentheticalThoughtLayout(text) {
+  let next = text.replace(/(?<=[.．。!?…\w\)])\s+\(/g, '\n(');
   next = applyParentheticalCloseLinebreaks(next);
+  return next.replace(/\n{2,}/g, '\n');
+}
+
+function convertPyRule1(text) {
+  return text.replace(/[ \t]*\r?\n+[ \t]*/g, ' ');
+}
+
+function applyParenThoughtPipeline(text) {
+  let next = joinSplitParentheticalClose(text);
+  next = convertPyRule1(next);
+  next = applyParentheticalThoughtLayout(next);
   return next;
 }
 
@@ -104,7 +115,7 @@ const parenThought = [
   '(일단 집으로 데리고 가서 조금 혼내주고 연락처라도 알아둘까?',
   ') 결론을  낸 마사시는 상점으로부터 그다지 떨어져있지 않은 자신의 아파트에',
 ].join('\n');
-const parenOut = applyPreConvertParenRules(parenThought);
+const parenOut = applyParenThoughtPipeline(parenThought);
 const parenExpected = [
   '(벌써 폐점 시간으로부터 30분이나 지났군.)',
   '마사시의 생각은 이어졌다.',
@@ -121,7 +132,7 @@ console.log('parenthetical thought rules OK');
 
 const exclaim =
   '(앗! 이사람, 날 알고 있었잖아?) 젊은 마사시는 자신을 잘 모를 것이라고 생각했던 케이코는 점 다리에 힘이 빠져갔다.';
-const exclaimOut = applyPreConvertParenRules(exclaim);
+const exclaimOut = applyParenThoughtPipeline(exclaim);
 const exclaimExpected =
   '(앗! 이사람, 날 알고 있었잖아?)\n젊은 마사시는 자신을 잘 모를 것이라고 생각했던 케이코는 점 다리에 힘이 빠져갔다.';
 if (exclaimOut !== exclaimExpected) {
@@ -129,6 +140,33 @@ if (exclaimOut !== exclaimExpected) {
   process.exit(1);
 }
 console.log('!? ) close line break OK');
+
+const multilineThought = [
+  '마사시는 시계를 보고 시간을 확인했다.',
+  '',
+  '(벌써 폐점 시간으로부터 30분이나 지났군. 어떻게 할까나...)',
+  '',
+  '마사시의 생각은 이어졌다.',
+  '',
+  '(일단 집으로 데리고 가서 조금 혼내주고 연락처라도 알아둘까?)',
+  '',
+  '결론을 낸 마사시는 상점으로부터 그다지 떨어져있지 않은 자신의 아파트에 소녀를 데려 가기로 했다.',
+].join('\n');
+const multilineOut = applyParenThoughtPipeline(multilineThought);
+const multilineExpected = [
+  '마사시는 시계를 보고 시간을 확인했다.',
+  '(벌써 폐점 시간으로부터 30분이나 지났군. 어떻게 할까나...)',
+  '마사시의 생각은 이어졌다.',
+  '(일단 집으로 데리고 가서 조금 혼내주고 연락처라도 알아둘까?)',
+  '결론을 낸 마사시는 상점으로부터 그다지 떨어져있지 않은 자신의 아파트에 소녀를 데려 가기로 했다.',
+].join('\n');
+if (multilineOut !== multilineExpected) {
+  console.error('multiline paren thought layout failed');
+  console.error('got:\n', JSON.stringify(multilineOut));
+  console.error('want:\n', JSON.stringify(multilineExpected));
+  process.exit(1);
+}
+console.log('multiline paren thought layout OK');
 
 let out = applyRegexRules('a..b  c] d==e');
 if (out !== 'a.b c]\nd=e') {

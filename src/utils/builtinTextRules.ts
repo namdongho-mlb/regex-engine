@@ -164,17 +164,37 @@ export function joinSplitParentheticalClose(text: string): {
   return { next, count };
 }
 
-/** (…?)|!)|.) 뒤 본문이 이어지면 줄바꿈 (닫는 괄호 뒤 공백 없음) */
+/** (…?)|!)|.)|…) 뒤 본문이 이어지면 줄바꿈 (닫는 괄호 뒤 공백 없음) */
 export function applyParentheticalCloseLinebreaks(text: string): {
   next: string;
   count: number;
 } {
   let count = 0;
-  const re = /(?:\.\s+\)|\.\s*\)|[?!]\))\s+/g;
+  const re = /(?:\.\s+\)|\.\s*\)|\.\.\.\)|[?!]\))\s+/g;
   const next = text.replace(re, (match) => {
     count += 1;
     const close = match.replace(/\s+$/, '');
     return `${close}\n`;
+  });
+  return { next, count };
+}
+
+/** convert.py 합친 뒤: 지문과 (생각) 사이 줄바꿈, 생각 닫힘 뒤 지문 줄바꿈 */
+export function applyParentheticalThoughtLayout(text: string): {
+  next: string;
+  count: number;
+} {
+  let count = 0;
+  let next = text.replace(/(?<=[.．。!?…\w\)])\s+\(/g, () => {
+    count += 1;
+    return '\n(';
+  });
+  const { next: withClose, count: closeCount } =
+    applyParentheticalCloseLinebreaks(next);
+  count += closeCount;
+  next = withClose.replace(/\n{2,}/g, () => {
+    count += 1;
+    return '\n';
   });
   return { next, count };
 }
@@ -185,5 +205,5 @@ export const BUILTIN_HANDLER_IDS = {
   quoteNarration: 9107,
   paragraphSpacing: 9108,
   joinParenClose: 9110,
-  parenCloseBreak: 9111,
+  parenThoughtLayout: 9111,
 } as const;

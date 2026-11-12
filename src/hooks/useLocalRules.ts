@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   createCoreBuiltinRules,
+  createPostConvertBuiltinRules,
   createPreConvertBuiltinRules,
 } from '../builtInRules';
 import { createEmptyRules } from '../defaultRules';
@@ -78,6 +79,7 @@ function buildHiddenRules(pyRules: RegexRule[]): RegexRule[] {
   return [
     ...createPreConvertBuiltinRules(),
     ...mapPyToHiddenRules(pyRules),
+    ...createPostConvertBuiltinRules(),
     ...createCoreBuiltinRules(),
   ];
 }
