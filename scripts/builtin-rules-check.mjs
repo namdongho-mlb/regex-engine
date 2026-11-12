@@ -82,10 +82,17 @@ if (kanjiOut !== '해외로 전근해 버렸다．시로는 아버지가 재혼�
 }
 console.log('kanji in parentheses removal OK');
 
+function applyParentheticalCloseLinebreaks(text) {
+  let count = 0;
+  return text.replace(/(?:\.\s+|\.\)|[?!])\)\s+/g, (match) => {
+    count += 1;
+    return `${match.trimEnd()} \n`;
+  });
+}
+
 function applyPreConvertParenRules(text) {
   let next = text.replace(/\?[\s\n\r]+\)/g, '?)');
-  next = next.replace(/\.\s+\)\s+/g, '. ) \n');
-  next = next.replace(/\?\)\s+/g, '?) \n');
+  next = applyParentheticalCloseLinebreaks(next);
   return next;
 }
 
@@ -108,6 +115,17 @@ if (parenOut !== parenExpected) {
   process.exit(1);
 }
 console.log('parenthetical thought rules OK');
+
+const exclaim =
+  '(앗! 이사람, 날 알고 있었잖아?) 젊은 마사시는 자신을 잘 모를 것이라고 생각했던 케이코는 점 다리에 힘이 빠져갔다.';
+const exclaimOut = applyPreConvertParenRules(exclaim);
+const exclaimExpected =
+  '(앗! 이사람, 날 알고 있었잖아?) \n젊은 마사시는 자신을 잘 모를 것이라고 생각했던 케이코는 점 다리에 힘이 빠져갔다.';
+if (exclaimOut !== exclaimExpected) {
+  console.error('!? close paren break failed:', JSON.stringify(exclaimOut));
+  process.exit(1);
+}
+console.log('!? ) close line break OK');
 
 let out = applyRegexRules('a..b  c] d==e');
 if (out !== 'a.b c]\nd=e') {

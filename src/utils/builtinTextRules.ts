@@ -151,9 +151,24 @@ export function applyParagraphSpacing(text: string): {
   return { next: paragraphs.join('\n\n'), count: blankInserts };
 }
 
+/** (…?)|!)|.) ) 뒤 본문이 이어지면 줄바꿈 */
+export function applyParentheticalCloseLinebreaks(text: string): {
+  next: string;
+  count: number;
+} {
+  let count = 0;
+  const re = /(?:\.\s+|\.\)|[?!])\)\s+/g;
+  const next = text.replace(re, (match) => {
+    count += 1;
+    return `${match.trimEnd()} \n`;
+  });
+  return { next, count };
+}
+
 export const BUILTIN_HANDLER_IDS = {
   dialogueCorner: 9104,
   wrap80: 9105,
   quoteNarration: 9107,
   paragraphSpacing: 9108,
+  parenCloseBreak: 9111,
 } as const;

@@ -3,6 +3,7 @@
 import {
   applyDialogueCornerQuotes,
   applyParagraphSpacing,
+  applyParentheticalCloseLinebreaks,
   applyQuoteNarrationLinebreaks,
   BUILTIN_HANDLER_IDS,
   wrapLongLinesAt80,
@@ -67,6 +68,9 @@ function applyBuiltinById(
   }
   if (ruleId === BUILTIN_HANDLER_IDS.paragraphSpacing) {
     return applyParagraphSpacing(text);
+  }
+  if (ruleId === BUILTIN_HANDLER_IDS.parenCloseBreak) {
+    return applyParentheticalCloseLinebreaks(text);
   }
   return null;
 }

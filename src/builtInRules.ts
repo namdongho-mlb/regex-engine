@@ -16,19 +16,8 @@ export function createPreConvertBuiltinRules(): RegexRule[] {
     {
       id: 9111,
       enabled: true,
-      // (. ) 뒤 본문 → 줄바꿈
-      pattern: String.raw`\.\s+\)\s+`,
-      replacement: '. ) \n',
-      flags: { g: true, i: false, m: false, s: false },
-      matchCount: null,
-      error: null,
-    },
-    {
-      id: 9112,
-      enabled: true,
-      // (…?) 뒤 본문 → 줄바꿈
-      pattern: String.raw`\?\)\s+`,
-      replacement: '?) \n',
+      pattern: '__builtin_paren_close_break__',
+      replacement: '',
       flags: { g: true, i: false, m: false, s: false },
       matchCount: null,
       error: null,
@@ -128,8 +117,7 @@ export function createCoreBuiltinRules(): RegexRule[] {
 export const BUILTIN_RULE_LABELS: Record<number, string> = {
   9109: '괄호 안 한자 삭제',
   9110: '괄호 생각 ?) 합치기',
-  9111: '. ) 뒤 줄바꿈',
-  9112: '?) 뒤 줄바꿈',
+  9111: '?)|!)|.) 뒤 줄바꿈',
   9101: '연속 공백 → 1칸',
   9102: '"]" 뒤 줄바꿈',
   9103: '동일 기호 반복 축소',
